@@ -1,6 +1,7 @@
 #include "glimac/trackball_camera.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/fwd.hpp"
+#include "glm/gtc/random.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "render/game_object.hpp"
 #include <cstddef>
@@ -11,11 +12,33 @@
 #include "maths/color.hpp"
 #include "maths/random_generator.hpp"
 #include "render/program.hpp"
+#include "scene_objects/firework.hpp"
 
 struct Light {
   glm::vec3 position;  // Light position in view space
   glm::vec3 intensity; // Light intensity
 };
+
+// Variables globales
+std::vector<Firework> fireworks;
+glm::vec3 gravity(0.f, -0.2f, 0.f);
+
+void update_fireworks(Program &program, const glm::mat4 &view_matrix,
+                      const glm::mat4 &proj_matrix) {
+  if (glm::linearRand(0.f, 10.f) < 0.2f) {
+    fireworks.push_back(Firework());
+    std::cout << "2" << std::endl;
+  }
+
+  for (auto it = fireworks.begin(); it != fireworks.end();) {
+    it->run(gravity, program, view_matrix, proj_matrix);
+    if (it->done()) {
+      it = fireworks.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
 
 int time_events(int next_event_time, p6::Context &ctx) {
   const double current_time = ctx.time();
@@ -58,7 +81,18 @@ void handle_camera_input(p6::Context &ctx, TrackballCamera &camera,
   };
 }
 
+void APIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id,
+                                     GLenum severity, GLsizei length,
+                                     const GLchar *message,
+                                     const void *userParam) {
+  std::cout << "GL CALLBACK: "
+            << (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "")
+            << " type = " << type << ", severity = " << severity
+            << ", message = " << message << std::endl;
+}
+
 int main() {
+
   auto ctx = p6::Context{{1280, 720, "Projet d'honneur - Guilhem Duval"}};
   ctx.maximize_window();
   glEnable(GL_DEPTH_TEST);
@@ -72,11 +106,26 @@ int main() {
 
   double next_event_time = 0.0;
 
+  GameObject arrow_z("assets/models/arrow.obj", glm::vec3(0., 0., 1.));
+  arrow_z.set_scale(glm::vec3(5.f, 5.f, 5.f));
+
+  GameObject arrow_x("assets/models/arrow.obj", glm::vec3(1., 0., 0.));
+  arrow_x.set_scale(glm::vec3(5.f, 5.f, 5.f));
+  arrow_x.set_rotation(glm::vec3(90., 0., 0.));
+
+  GameObject arrow_y("assets/models/arrow.obj", glm::vec3(0., 1., 0.));
+  arrow_y.set_scale(glm::vec3(5.f, 5.f, 5.f));
+  arrow_y.set_rotation(glm::vec3(0., 0., -90.));
+
   GameObject space_object("assets/models/space.obj",
                           "assets/textures/space_texture.jpg");
-  space_object.set_scale(glm::vec3(0.1f, 0.1f, 0.1f));
+  space_object.set_scale(glm::vec3(.5f, .5f, .5f));
   space_object.set_lighting_factors({0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f},
                                     75.0f);
+
+  GameObject star_boid("assets/models/star_low.obj", generate_vivid_color());
+  star_boid.set_scale(glm::vec3(0.01f, 0.01f, 0.001f));
+  star_boid.set_lighting_factors({1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, 200.0f);
 
   float last_x = 0;
   float last_y = 0;
@@ -84,12 +133,15 @@ int main() {
   glm::vec3 lightPosition(0.0f, 0.0f, 0.0f);
   float lightMotionRadius = 8.0f;
   float lightMotionSpeed = 0.5f;
-  lights[0].intensity = glm::vec3(2.0f, 2.0f, 2.0f);
+  lights[0].intensity = glm::vec3(200.0f, 200.0f, 200.0f);
 
   ctx.update = [&]() {
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(openglCallbackFunction, nullptr);
+
     next_event_time = time_events(next_event_time, ctx);
 
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     camera.set_center({0., 0., 0.});
@@ -97,7 +149,7 @@ int main() {
 
     glm::mat4 view_matrix = camera.get_view_matrix();
     glm::mat4 proj_matrix =
-        glm::perspective(glm::radians(70.f), ctx.aspect_ratio(), 0.1f, 100.f);
+        glm::perspective(glm::radians(70.f), ctx.aspect_ratio(), 0.1f, 10000.f);
 
     // Update light position
     float time = ctx.time();
@@ -108,7 +160,7 @@ int main() {
 
     lights[1].position = glm::vec3(view_matrix * glm::vec4(0., 0., 0., 1.0));
 
-    lights[1].intensity = glm::vec3(2.0f, 2.0f, 2.0f);
+    lights[1].intensity = glm::vec3(200.0f, 200.0f, 200.0f);
 
     program.use();
     glUniform3fv(program.u_light_pos_vs_0, 1,
@@ -120,12 +172,17 @@ int main() {
     glUniform3fv(program.u_light_intensity_1, 1,
                  glm::value_ptr(lights[1].intensity));
 
+    update_fireworks(program, view_matrix, proj_matrix);
     glEnable(GL_CULL_FACE);
+    std::cout << "1";
 
     glCullFace(GL_FRONT);
-    space_object.render_game_object(program, view_matrix, proj_matrix);
+    // space_object.render_game_object(program, view_matrix, proj_matrix);
 
     glCullFace(GL_BACK);
+    arrow_z.render_game_object(program, view_matrix, proj_matrix);
+    arrow_y.render_game_object(program, view_matrix, proj_matrix);
+    arrow_x.render_game_object(program, view_matrix, proj_matrix);
 
     glDisable(GL_CULL_FACE);
   };
