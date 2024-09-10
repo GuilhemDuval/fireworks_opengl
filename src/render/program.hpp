@@ -14,7 +14,9 @@ public:
   GLint u_texture;
   GLint u_color;
   GLint u_use_color;
+
   GLint u_is_particle;
+  GLint u_is_seed;
 
   GLint u_kd;
   GLint u_ks;
@@ -36,6 +38,7 @@ public:
         u_color(glGetUniformLocation(m_program.id(), "u_color")),
         u_use_color(glGetUniformLocation(m_program.id(), "u_use_color")),
         u_is_particle(glGetUniformLocation(m_program.id(), "u_is_particle")),
+        u_is_seed(glGetUniformLocation(m_program.id(), "u_is_seed")),
         u_kd(glGetUniformLocation(m_program.id(), "u_kd")),
         u_ks(glGetUniformLocation(m_program.id(), "u_ks")),
         u_shininess(glGetUniformLocation(m_program.id(), "u_shininess")),

@@ -32,5 +32,5 @@ void main() {
 
     // Final projected position
     gl_Position = u_MVP_matrix * vertex_position_hom;
-    gl_PointSize = 10000.0; // Set the size of the particle
+    gl_PointSize = 5.0; // Set the size of the particle
 }

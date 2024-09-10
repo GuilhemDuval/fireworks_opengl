@@ -5,13 +5,13 @@
 
 Particle::Particle(float x, float y, float z, float hue)
     : location(x, y, z), hu(hue), lifespan(255.0), seed(true) {
-  velocity = glm::vec3(0, glm::linearRand(-25.f, -10.f), 0);
+  velocity = glm::vec3(0, glm::linearRand(4.f, 8.f), 0);
   acceleration = glm::vec3(0, 0, 0);
 }
 
 Particle::Particle(glm::vec3 loc, float hue)
     : location(loc), hu(hue), lifespan(255.0), seed(false) {
-  velocity = glm::ballRand(1.0f) * glm::linearRand(4.f, 8.f);
+  velocity = glm::ballRand(1.0f) * glm::linearRand(1.f, 5.f);
   acceleration = glm::vec3(0, 0, 0);
 }
 
