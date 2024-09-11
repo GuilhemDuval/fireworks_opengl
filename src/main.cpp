@@ -117,6 +117,51 @@ int main() {
   arrow_y.set_scale(glm::vec3(5.f, 5.f, 5.f));
   arrow_y.set_rotation(glm::vec3(0., 0., -90.));
 
+  GameObject ef_dushBoard("assets/models/ef_dushBoard.obj",
+                          "assets/textures/ef_dushBoard.png");
+  GameObject ef_hpipeBoard("assets/models/ef_hpipeBoard.obj",
+                           "assets/textures/ef_hpipeBoard.png");
+  GameObject ef_hpipeBoard2("assets/models/ef_hpipeBoard2.obj",
+                            "assets/textures/ef_hpipeBoard2.png");
+  GameObject ef_hpipeBoard3("assets/models/ef_hpipeBoard3.obj",
+                            "assets/textures/ef_hpipeBoard3.png");
+  GameObject shadow("assets/models/shadow.obj", "assets/textures/shadow.png");
+  GameObject TR_caveWall("assets/models/TR_caveWall.obj",
+                         "assets/textures/TR_caveWall.png");
+  GameObject TR_chiso("assets/models/TR_chiso.obj",
+                      "assets/textures/TR_chiso.png");
+  GameObject TR_hari("assets/models/TR_hari.obj",
+                     "assets/textures/TR_hari.png");
+  GameObject TR_hasira("assets/models/TR_hasira.obj",
+                       "assets/textures/TR_hasira.png");
+  GameObject TR_houseALL("assets/models/TR_houseALL.obj",
+                         "assets/textures/TR_houseALL.png");
+  GameObject TR_iwa("assets/models/TR_iwa.obj", "assets/textures/TR_iwa.png");
+  GameObject TR_iwa2("assets/models/TR_iwa2.obj",
+                     "assets/textures/TR_iwa2.png");
+  GameObject TR_jimen("assets/models/TR_jimen.obj",
+                      "assets/textures/TR_jimen.png");
+  GameObject TR_joint("assets/models/TR_joint.obj",
+                      "assets/textures/TR_joint.png");
+  GameObject TR_kanbanALL("assets/models/TR_kanbanALL.obj",
+                          "assets/textures/TR_kanbanALL.png");
+  GameObject TR_senro_ura("assets/models/TR_senro_ura.obj",
+                          "assets/textures/TR_senro_ura.png");
+  GameObject TR_senro("assets/models/TR_senro.obj",
+                      "assets/textures/TR_senro.png");
+  GameObject TR_SF_shadow("assets/models/TR_SF_shadow.obj",
+                          "assets/textures/TR_SF_shadow.png");
+  GameObject TR_sky("assets/models/TR_sky.obj", "assets/textures/TR_sky.png");
+  TR_sky.set_scale(glm::vec3(.9f, 0.9f, 0.9f));
+  GameObject TR_spot1("assets/models/TR_spot1.obj",
+                      "assets/textures/TR_spot1.png");
+  GameObject TR_teppan("assets/models/TR_teppan.obj",
+                       "assets/textures/TR_teppan.png");
+  GameObject TR_tesuri("assets/models/TR_tesuri.obj",
+                       "assets/textures/TR_tesuri.png");
+  GameObject TR_wood("assets/models/TR_wood.obj",
+                     "assets/textures/TR_wood.png");
+
   GameObject space_object("assets/models/space.obj",
                           "assets/textures/space_texture.jpg");
   space_object.set_scale(glm::vec3(1.5f, 1.5f, 1.5f));
@@ -154,7 +199,7 @@ int main() {
 
     glm::mat4 view_matrix = camera.get_view_matrix();
     glm::mat4 proj_matrix =
-        glm::perspective(glm::radians(90.f), ctx.aspect_ratio(), 0.1f, 1000.f);
+        glm::perspective(glm::radians(90.f), ctx.aspect_ratio(), 0.1f, 2000.f);
 
     // Update light position
     float time = ctx.time();
@@ -163,9 +208,10 @@ int main() {
 
     lights[0].position = glm::vec3(view_matrix * glm::vec4(lightPosition, 1.0));
 
-    lights[1].position = glm::vec3(view_matrix * glm::vec4(0., 0., 0., 1.0));
+    lights[1].position =
+        glm::vec3(view_matrix * glm::vec4(-30., 50., -30., 1.0));
 
-    lights[1].intensity = glm::vec3(20.0f, 20.0f, 20.0f);
+    lights[1].intensity = glm::vec3(0.0f, 20.0f, 20.0f);
 
     program.use();
     glUniform3fv(program.u_light_pos_vs_0, 1,
@@ -180,8 +226,37 @@ int main() {
     glEnable(GL_CULL_FACE);
     std::cout << "1";
 
+    TR_sky.render_game_object(program, view_matrix, proj_matrix);
+
+    ef_dushBoard.render_game_object(program, view_matrix, proj_matrix);
+
+    // ef_hpipeBoard3.render_game_object(program, view_matrix, proj_matrix);
+    ef_hpipeBoard.render_game_object(program, view_matrix, proj_matrix);
+    ef_hpipeBoard2.render_game_object(program, view_matrix, proj_matrix);
+
+    TR_caveWall.render_game_object(program, view_matrix, proj_matrix);
+    TR_chiso.render_game_object(program, view_matrix, proj_matrix);
+    TR_hari.render_game_object(program, view_matrix, proj_matrix);
+    TR_hasira.render_game_object(program, view_matrix, proj_matrix);
+    TR_houseALL.render_game_object(program, view_matrix, proj_matrix);
+    TR_iwa.render_game_object(program, view_matrix, proj_matrix);
+    TR_iwa2.render_game_object(program, view_matrix, proj_matrix);
+    TR_jimen.render_game_object(program, view_matrix, proj_matrix);
+    TR_joint.render_game_object(program, view_matrix, proj_matrix);
+    TR_kanbanALL.render_game_object(program, view_matrix, proj_matrix);
+    TR_senro_ura.render_game_object(program, view_matrix, proj_matrix);
+    TR_senro.render_game_object(program, view_matrix, proj_matrix);
+
+    TR_spot1.render_game_object(program, view_matrix, proj_matrix);
+    TR_teppan.render_game_object(program, view_matrix, proj_matrix);
+    TR_tesuri.render_game_object(program, view_matrix, proj_matrix);
+    TR_wood.render_game_object(program, view_matrix, proj_matrix);
+
+    TR_SF_shadow.render_game_object(program, view_matrix, proj_matrix);
+    shadow.render_game_object(program, view_matrix, proj_matrix);
+
     glCullFace(GL_FRONT);
-    space_object.render_game_object(program, view_matrix, proj_matrix);
+    // space_object.render_game_object(program, view_matrix, proj_matrix);
 
     glCullFace(GL_BACK);
     arrow_z.render_game_object(program, view_matrix, proj_matrix);

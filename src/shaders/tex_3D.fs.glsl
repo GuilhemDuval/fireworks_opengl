@@ -87,21 +87,20 @@ void main() {
     } else {
         // Standard Blinn-Phong shading for non-particles
         vec3 normal = normalize(v_normal_vs);
-        vec3 frag_color;
+        vec4 frag_color;
 
         // Choose between texture or uniform color
         if(u_use_color) {
-            frag_color = u_color;  // Use the uniform color if specified
+            frag_color = vec4(u_color, 1.0);  // Use the uniform color if specified
         } else {
-            vec4 texture_color = texture(u_texture, v_tex_coords);
-            frag_color = texture_color.rgb;  // Use the color from the texture
+            frag_color = texture(u_texture, v_tex_coords);  // Use the color and alpha from the texture
         }
 
         // Calculate lighting with Blinn-Phong for both lights
         vec3 lighting = blinn_phong_lighting(0, normal, v_position_vs) + blinn_phong_lighting(1, normal, v_position_vs);
         lighting = clamp(lighting, vec3(0.1), vec3(1.0)); // Clamp lighting to avoid overexposure
 
-        // Combine the fragment color with the calculated lighting
-        f_frag_color = vec4(frag_color * lighting, 1.0);
+        // Combine the fragment color with the calculated lighting, preserving the alpha
+        f_frag_color = vec4(frag_color.rgb * lighting, frag_color.a);
     }
 }
