@@ -21,8 +21,8 @@ void Particle::update() {
   velocity += acceleration;
   location += velocity;
   if (!seed) {
-    lifespan -= 5.0f;
-    velocity *= 0.9f; // Réduction de la vitesse au fil du temps
+    lifespan -= 2.5f;
+    velocity *= 0.95f; // Réduction de la vitesse au fil du temps
   }
   acceleration = glm::vec3(0, 0, 0); // Réinitialise l'accélération
 }

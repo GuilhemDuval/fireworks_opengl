@@ -4,8 +4,8 @@
 
 Firework::Firework()
     : hue(glm::linearRand(0.f, 255.f)),
-      firework(glm::linearRand(-50.f, 50.f), -10.f,
-               glm::linearRand(-50.f, 50.f), hue),
+      firework(glm::linearRand(-100.f, 0.f), -50.f,
+               glm::linearRand(-150.f, 150.f), hue),
       m_vao(std::make_unique<VAO>()), m_vbo(std::make_unique<VBO>()) {
 
   m_vao->bind();
@@ -33,7 +33,7 @@ void Firework::run(const glm::vec3 &gravity, const Program &program,
     firework.update();
     if (firework.explode()) {
       // Générer les particules après l'explosion
-      for (int i = 0; i < 250; ++i) {
+      for (int i = 0; i < 750; ++i) {
         particles.push_back(Particle(firework.location, hue));
       }
     }

@@ -128,6 +128,8 @@ int main() {
   GameObject star_boid_low("assets/models/star_low.obj",
                            glm::vec3(1.0, 1.0, 1.0));
   star_boid_low.set_scale(glm::vec3(0.1f, 0.1f, 0.1f));
+  star_boid_low.set_lighting_factors(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0),
+                                     0.0);
 
   GameObject arrow_y("assets/models/arrow.obj", glm::vec3(0., 1., 0.));
   arrow_y.set_scale(glm::vec3(5.f, 5.f, 5.f));
@@ -208,8 +210,8 @@ int main() {
                                     75.0f);
 
   GameObject star_boid("assets/models/star_low.obj", generate_vivid_color());
-  star_boid.set_scale(glm::vec3(0.01f, 0.01f, 0.001f));
-  star_boid.set_lighting_factors({1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, 200.0f);
+  star_boid.set_scale(glm::vec3(0.1f, 0.1f, 0.1f));
+  star_boid.set_lighting_factors({1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, 0.0f);
 
   float last_x = 0;
   float last_y = 0;
@@ -241,9 +243,9 @@ int main() {
     next_event_time = time_events(next_event_time, ctx);
 
     ImGui::Begin("Position of the light");
-    ImGui::SliderFloat("X", &position_light_x, -1.f, 1.f);
-    ImGui::SliderFloat("Y", &position_light_y, -1.f, 1.f);
-    ImGui::SliderFloat("Z", &position_light_z, -1.f, 1.f);
+    ImGui::SliderFloat("X", &position_light_x, -200.f, 200.f);
+    ImGui::SliderFloat("Y", &position_light_y, -200.f, 200.f);
+    ImGui::SliderFloat("Z", &position_light_z, -200.f, 200.f);
     ImGui::End();
 
     glClearColor(0.f, 0.f, 0.f, 1.0f);
