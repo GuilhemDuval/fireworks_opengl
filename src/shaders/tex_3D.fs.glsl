@@ -102,5 +102,6 @@ void main() {
 
         // Combine the fragment color with the calculated lighting, preserving the alpha
         f_frag_color = vec4(frag_color.rgb * lighting, frag_color.a);
+        // f_frag_color = vec4(frag_color.rgb, frag_color.a);
     }
 }

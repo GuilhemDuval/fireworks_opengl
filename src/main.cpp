@@ -27,7 +27,6 @@ void update_fireworks(Program &program, const glm::mat4 &view_matrix,
                       const glm::mat4 &proj_matrix) {
   if (glm::linearRand(0.f, 10.f) < 0.2f) {
     fireworks.push_back(Firework());
-    std::cout << "2" << std::endl;
   }
 
   for (auto it = fireworks.begin(); it != fireworks.end();) {
@@ -54,13 +53,14 @@ int time_events(int next_event_time, p6::Context &ctx) {
 
 void handle_camera_input(p6::Context &ctx, TrackballCamera &camera,
                          float &last_x, float &last_y) {
+
   ctx.mouse_dragged = [&](p6::MouseDrag drag) {
-    float deltaX = drag.position.x - last_x;
-    float deltaY = drag.position.y - last_y;
+    float delta_x = drag.position.x - last_x;
+    float delta_y = drag.position.y - last_y;
 
     if (last_x != 0 && last_y != 0) {
-      camera.rotate_left(-deltaX * 25.f);
-      camera.rotate_up(deltaY * 25.f);
+      camera.rotate_left(-delta_x);
+      camera.rotate_up(-delta_y);
     }
 
     last_x = drag.position.x;
@@ -77,8 +77,25 @@ void handle_camera_input(p6::Context &ctx, TrackballCamera &camera,
   }
 
   ctx.mouse_scrolled = [&](p6::MouseScroll scroll) {
-    camera.move_front(-scroll.dy);
+    camera.move_front(scroll.dy);
   };
+
+  if (ctx.key_is_pressed(GLFW_KEY_W))
+    camera.move_center(glm::vec3(0, 0, -1));
+  if (ctx.key_is_pressed(GLFW_KEY_S))
+    camera.move_center(glm::vec3(0, 0, 1));
+  if (ctx.key_is_pressed(GLFW_KEY_A))
+    camera.move_center(glm::vec3(1, 0, 0));
+  if (ctx.key_is_pressed(GLFW_KEY_D))
+    camera.move_center(glm::vec3(-1, 0, 0));
+  if (ctx.key_is_pressed(GLFW_KEY_T)) // R
+    camera.move_center(glm::vec3(0, 1, 0));
+  if (ctx.key_is_pressed(GLFW_KEY_Q)) // F
+    camera.move_center(glm::vec3(0, -1, 0));
+
+  if (ctx.key_is_pressed(GLFW_KEY_I)) {
+    camera.print_camera_info();
+  }
 }
 
 void APIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id,
@@ -101,21 +118,27 @@ int main() {
   srand(time(NULL));
 
   TrackballCamera camera;
+  camera.set_move_speed(10.f);
+  camera.set_rotate_speed(2.f);
   Program program{};
   Light lights[2];
 
   double next_event_time = 0.0;
 
-  GameObject arrow_z("assets/models/arrow.obj", glm::vec3(0., 0., 1.));
-  arrow_z.set_scale(glm::vec3(5.f, 5.f, 5.f));
-
-  GameObject arrow_x("assets/models/arrow.obj", glm::vec3(1., 0., 0.));
-  arrow_x.set_scale(glm::vec3(5.f, 5.f, 5.f));
-  arrow_x.set_rotation(glm::vec3(90., 0., 0.));
+  GameObject star_boid_low("assets/models/star_low.obj",
+                           glm::vec3(1.0, 1.0, 1.0));
+  star_boid_low.set_scale(glm::vec3(0.1f, 0.1f, 0.1f));
 
   GameObject arrow_y("assets/models/arrow.obj", glm::vec3(0., 1., 0.));
   arrow_y.set_scale(glm::vec3(5.f, 5.f, 5.f));
-  arrow_y.set_rotation(glm::vec3(0., 0., -90.));
+
+  GameObject arrow_z("assets/models/arrow.obj", glm::vec3(0., 0., 1.));
+  arrow_z.set_scale(glm::vec3(5.f, 5.f, 5.f));
+  arrow_z.set_rotation(glm::vec3(90., 0., 0.));
+
+  GameObject arrow_x("assets/models/arrow.obj", glm::vec3(1., 0., 0.));
+  arrow_x.set_scale(glm::vec3(5.f, 5.f, 5.f));
+  arrow_x.set_rotation(glm::vec3(0., 0., -90.));
 
   GameObject ef_dushBoard("assets/models/ef_dushBoard.obj",
                           "assets/textures/ef_dushBoard.png");
@@ -175,10 +198,14 @@ int main() {
   float last_x = 0;
   float last_y = 0;
 
+  float position_light_x;
+  float position_light_y;
+  float position_light_z;
+
   glm::vec3 lightPosition(0.0f, 0.0f, 0.0f);
   float lightMotionRadius = 8.0f;
   float lightMotionSpeed = 0.5f;
-  lights[0].intensity = glm::vec3(20.0f, 20.0f, 20.0f);
+  lights[0].intensity = glm::vec3(10 * 0.82f, 10 * 0.86f, 10 * 1.0f);
 
   ctx.update = [&]() {
     glEnable(GL_DEBUG_OUTPUT);
@@ -190,6 +217,13 @@ int main() {
     glEnable(GL_PROGRAM_POINT_SIZE);
 
     next_event_time = time_events(next_event_time, ctx);
+
+    ImGui::Begin("Position of the light");
+    ImGui::Text("Let's have fun!");
+    ImGui::SliderFloat("X", &position_light_x, -50.0f, 50.f);
+    ImGui::SliderFloat("Y", &position_light_y, -50.0f, 50.f);
+    ImGui::SliderFloat("Z", &position_light_z, -50.0f, 50.f);
+    ImGui::End();
 
     glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -206,12 +240,16 @@ int main() {
     lightPosition.x = sin(time * lightMotionSpeed) * lightMotionRadius;
     lightPosition.z = cos(time * lightMotionSpeed) * lightMotionRadius;
 
-    lights[0].position = glm::vec3(view_matrix * glm::vec4(lightPosition, 1.0));
+    lights[0].position =
+        glm::vec3(view_matrix * glm::vec4(position_light_x, position_light_y,
+                                          position_light_z, 1.0));
 
     lights[1].position =
-        glm::vec3(view_matrix * glm::vec4(-30., 50., -30., 1.0));
+        glm::vec3(view_matrix * glm::vec4(-38., 50., 33., 1.0));
+    star_boid_low.set_position(
+        {position_light_x, position_light_y, position_light_z});
 
-    lights[1].intensity = glm::vec3(0.0f, 20.0f, 20.0f);
+    lights[1].intensity = glm::vec3(0.0f, 5.0f, 3.8f);
 
     program.use();
     glUniform3fv(program.u_light_pos_vs_0, 1,
@@ -224,7 +262,8 @@ int main() {
                  glm::value_ptr(lights[1].intensity));
 
     glEnable(GL_CULL_FACE);
-    std::cout << "1";
+
+    star_boid_low.render_game_object(program, view_matrix, proj_matrix);
 
     TR_sky.render_game_object(program, view_matrix, proj_matrix);
 
@@ -247,7 +286,7 @@ int main() {
     TR_senro_ura.render_game_object(program, view_matrix, proj_matrix);
     TR_senro.render_game_object(program, view_matrix, proj_matrix);
 
-    TR_spot1.render_game_object(program, view_matrix, proj_matrix);
+    // TR_spot1.render_game_object(program, view_matrix, proj_matrix);
     TR_teppan.render_game_object(program, view_matrix, proj_matrix);
     TR_tesuri.render_game_object(program, view_matrix, proj_matrix);
     TR_wood.render_game_object(program, view_matrix, proj_matrix);
