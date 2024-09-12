@@ -16,7 +16,7 @@ uniform vec3 u_kd;                  // Diffuse reflectivity
 uniform vec3 u_ks;                  // Specular reflectivity
 uniform float u_shininess;          // Shininess for specular highlight
 
-uniform Light u_lights[2];          // Array of lights
+uniform Light u_lights[6];          // Array of lights
 
 // Inputs from the vertex shader
 in vec3 v_normal_vs;                // Transformed vertex normal in view space
@@ -27,28 +27,34 @@ in vec3 v_position_vs;              // Transformed vertex position in view space
 out vec4 f_frag_color;
 
 // Function to compute Blinn-Phong lighting
-vec3 blinn_phong_lighting(int light_index, vec3 normal, vec3 frag_pos) {
-    vec3 light_dir = normalize(u_lights[light_index].position - frag_pos); // Direction from fragment to light
-    vec3 view_dir = normalize(-frag_pos); // Direction from fragment to camera
-    vec3 half_vector = normalize(light_dir + view_dir);
+vec3 blinn_phong_lighting(vec3 normal, vec3 frag_pos) {
+    vec3 lighting = vec3(0.0);
 
-    float diffuse_factor = max(dot(normal, light_dir), 0.0);
-    float specular_factor = pow(max(dot(normal, half_vector), 0.0), u_shininess);
+    for(int i = 0; i < 7; ++i) {
+        vec3 light_dir = normalize(u_lights[i].position - frag_pos); // Direction from fragment to light
+        vec3 view_dir = normalize(-frag_pos); // Direction from fragment to camera
+        vec3 half_vector = normalize(light_dir + view_dir);
 
-    float distance = length(u_lights[light_index].position - frag_pos);
+        float diffuse_factor = max(dot(normal, light_dir), 0.0);
+        float specular_factor = pow(max(dot(normal, half_vector), 0.0), u_shininess);
 
-    // Attenuation factors
-    float constant = 1.0;
-    float linear = 0.1;
-    float quadratic = 0.01;
+        float distance = length(u_lights[i].position - frag_pos);
 
-    float attenuation = 1.0 / ((constant + linear * distance) + (quadratic * (distance * distance)));
+        // Attenuation factors
+        float constant = 1.0;
+        float linear = 0.1;
+        float quadratic = 0.01;
 
-    vec3 light_intensity = u_lights[light_index].intensity * attenuation;
-    vec3 diffuse_color = light_intensity * u_kd * diffuse_factor;
-    vec3 specular_color = light_intensity * u_ks * specular_factor;
+        float attenuation = 1.0 / ((constant + linear * distance) + (quadratic * (distance * distance)));
 
-    return diffuse_color + specular_color;
+        vec3 light_intensity = u_lights[i].intensity * attenuation;
+        vec3 diffuse_color = light_intensity * u_kd * diffuse_factor;
+        vec3 specular_color = light_intensity * u_ks * specular_factor;
+
+        lighting += diffuse_color + specular_color;
+    }
+
+    return lighting;
 }
 
 void main() {
@@ -85,23 +91,22 @@ void main() {
         // Apply a slight random variation to each particle for a more natural effect
         f_frag_color.rgb *= 1.0 + (fract(sin(dot(v_position_vs.xy, vec2(12.9898, 78.233))) * 43758.5453) * 0.1);
     } else {
-        // Standard Blinn-Phong shading for non-particles
+        // Standard Blinn-Phong shading pour non-particules
         vec3 normal = normalize(v_normal_vs);
         vec4 frag_color;
 
-        // Choose between texture or uniform color
+        // Choisir entre texture ou couleur uniforme
         if(u_use_color) {
-            frag_color = vec4(u_color, 1.0);  // Use the uniform color if specified
+            frag_color = vec4(u_color, 1.0); // Utiliser la couleur uniforme si spécifié
         } else {
-            frag_color = texture(u_texture, v_tex_coords);  // Use the color and alpha from the texture
+            frag_color = texture(u_texture, v_tex_coords); // Utiliser la couleur et l'alpha de la texture
         }
 
-        // Calculate lighting with Blinn-Phong for both lights
-        vec3 lighting = blinn_phong_lighting(0, normal, v_position_vs) + blinn_phong_lighting(1, normal, v_position_vs);
-        lighting = clamp(lighting, vec3(0.1), vec3(1.0)); // Clamp lighting to avoid overexposure
+        // Calculer l'éclairage avec Blinn-Phong pour toutes les lumières
+        vec3 lighting = blinn_phong_lighting(normal, v_position_vs);
+        lighting = clamp(lighting, vec3(0.1), vec3(1.0)); // Limiter l'éclairage pour éviter la surexposition
 
-        // Combine the fragment color with the calculated lighting, preserving the alpha
+        // Combiner la couleur du fragment avec l'éclairage calculé, en préservant l'alpha
         f_frag_color = vec4(frag_color.rgb * lighting, frag_color.a);
-        // f_frag_color = vec4(frag_color.rgb, frag_color.a);
     }
 }

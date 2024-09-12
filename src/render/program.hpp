@@ -26,6 +26,14 @@ public:
   GLint u_light_intensity_0;
   GLint u_light_pos_vs_1;
   GLint u_light_intensity_1;
+  GLint u_light_pos_vs_2;
+  GLint u_light_intensity_2;
+  GLint u_light_pos_vs_3;
+  GLint u_light_intensity_3;
+  GLint u_light_pos_vs_4;
+  GLint u_light_intensity_4;
+  GLint u_light_pos_vs_5;
+  GLint u_light_intensity_5;
 
   Program()
       : m_program{p6::load_shader("../src/shaders/3D.vs.glsl",
@@ -46,10 +54,31 @@ public:
             glGetUniformLocation(m_program.id(), "u_lights[0].position")),
         u_light_intensity_0(
             glGetUniformLocation(m_program.id(), "u_lights[0].intensity")),
+
         u_light_pos_vs_1(
             glGetUniformLocation(m_program.id(), "u_lights[1].position")),
         u_light_intensity_1(
-            glGetUniformLocation(m_program.id(), "u_lights[1].intensity"))
+            glGetUniformLocation(m_program.id(), "u_lights[1].intensity")),
+
+        u_light_pos_vs_2(
+            glGetUniformLocation(m_program.id(), "u_lights[2].position")),
+        u_light_intensity_2(
+            glGetUniformLocation(m_program.id(), "u_lights[2].intensity")),
+
+        u_light_pos_vs_3(
+            glGetUniformLocation(m_program.id(), "u_lights[3].position")),
+        u_light_intensity_3(
+            glGetUniformLocation(m_program.id(), "u_lights[3].intensity")),
+
+        u_light_pos_vs_4(
+            glGetUniformLocation(m_program.id(), "u_lights[4].position")),
+        u_light_intensity_4(
+            glGetUniformLocation(m_program.id(), "u_lights[4].intensity")),
+
+        u_light_pos_vs_5(
+            glGetUniformLocation(m_program.id(), "u_lights[5].position")),
+        u_light_intensity_5(
+            glGetUniformLocation(m_program.id(), "u_lights[5].intensity"))
 
   {}
 
