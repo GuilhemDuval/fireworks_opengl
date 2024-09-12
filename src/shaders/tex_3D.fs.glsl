@@ -1,8 +1,8 @@
 #version 330 core
 
 struct Light {
-    vec3 position; // Light position in view space
-    vec3 intensity; // Light intensity
+    vec3 position; // Direction de la lumière directionnelle pour la lumière 0, sinon position de la lumière pour les autres
+    vec3 intensity; // Intensité de la lumière
 };
 
 // Uniforms
@@ -30,24 +30,36 @@ out vec4 f_frag_color;
 vec3 blinn_phong_lighting(vec3 normal, vec3 frag_pos) {
     vec3 lighting = vec3(0.0);
 
-    for(int i = 0; i < 7; ++i) {
-        vec3 light_dir = normalize(u_lights[i].position - frag_pos); // Direction from fragment to light
-        vec3 view_dir = normalize(-frag_pos); // Direction from fragment to camera
+    for(int i = 0; i < 6; ++i) {
+        vec3 light_dir;
+        if(i == 0) {
+            // Lumière directionnelle (lumière 0)
+            light_dir = normalize(-u_lights[i].position); // La position de la lumière est une direction
+        } else {
+            // Lumières ponctuelles (les autres)
+            light_dir = normalize(u_lights[i].position - frag_pos); // Direction de la lumière ponctuelle
+        }
+        vec3 view_dir = normalize(-frag_pos); // Direction de la vue
         vec3 half_vector = normalize(light_dir + view_dir);
 
         float diffuse_factor = max(dot(normal, light_dir), 0.0);
         float specular_factor = pow(max(dot(normal, half_vector), 0.0), u_shininess);
 
         float distance = length(u_lights[i].position - frag_pos);
+        vec3 light_intensity;
 
-        // Attenuation factors
-        float constant = 1.0;
-        float linear = 0.1;
-        float quadratic = 0.01;
+        if(i == 0) {
+            // Lumière directionnelle, pas d'atténuation
+            light_intensity = u_lights[i].intensity;
+        } else {
+            // Lumières ponctuelles avec atténuation
+            float constant = 1.0;
+            float linear = 0.1;
+            float quadratic = 0.01;
+            float attenuation = 1.0 / ((constant + linear * distance) + (quadratic * (distance * distance)));
+            light_intensity = u_lights[i].intensity * attenuation;
+        }
 
-        float attenuation = 1.0 / ((constant + linear * distance) + (quadratic * (distance * distance)));
-
-        vec3 light_intensity = u_lights[i].intensity * attenuation;
         vec3 diffuse_color = light_intensity * u_kd * diffuse_factor;
         vec3 specular_color = light_intensity * u_ks * specular_factor;
 
@@ -59,39 +71,39 @@ vec3 blinn_phong_lighting(vec3 normal, vec3 frag_pos) {
 
 void main() {
     if(u_is_particle) {
-        // Calculate distance between particle and camera
+        // Calculer la distance entre la particule et la caméra
         float distance_from_camera = length(v_position_vs);
 
-        // Make particles smaller for a more realistic firework effect
+        // Réduire la taille des particules pour un effet de feu d'artifice plus réaliste
         float adjusted_radius = mix(0.15, 0.05, clamp(1.0 / distance_from_camera, 0.0, 1.0));
 
-        // Compute the distance from the center of the point sprite
+        // Calculer la distance depuis le centre du sprite de point
         float distance = length(gl_PointCoord - vec2(0.5));
 
-        // Adjust halo effect based on seed status and distance
-        float halo_width = u_is_seed ? 0.3 : 0.2;  // Smaller halo for more diffuse particles
+        // Ajuster l'effet de halo en fonction de l'état du seed et de la distance
+        float halo_width = u_is_seed ? 0.3 : 0.2;  // Halo plus petit pour des particules plus diffuses
         float alpha = smoothstep(adjusted_radius * 1.5, adjusted_radius - halo_width, distance);
 
-        // Create a glow effect with a softer gradient
+        // Créer un effet de lueur avec un dégradé plus doux
         float halo = smoothstep(adjusted_radius * 1.2, adjusted_radius - halo_width, distance) -
             smoothstep(adjusted_radius - halo_width, adjusted_radius - 2.0 * halo_width, distance);
 
-        // Reduce the opacity at the center even more for a subtle, transparent core
+        // Réduire l'opacité au centre encore plus pour un noyau transparent subtil
         vec3 particle_color = u_color * (1.0 - distance * 0.9) + vec3(1.0, 1.0, 1.0) * halo * 0.3;
 
-        // Final color with much lower opacity at the center for softer edges
-        f_frag_color = vec4(particle_color, alpha * (1.0 - distance * 0.8));  // More transparent center
+        // Couleur finale avec une opacité beaucoup plus faible au centre pour des bords plus doux
+        f_frag_color = vec4(particle_color, alpha * (1.0 - distance * 0.8));  // Centre plus transparent
 
-        // Add a subtle, randomized glow for seed particles
+        // Ajouter une lueur subtile et aléatoire pour les particules de seed
         if(u_is_seed) {
-            float glow = (1.0 - distance / adjusted_radius) * 0.1;  // Reduce glow intensity
+            float glow = (1.0 - distance / adjusted_radius) * 0.1;  // Réduire l'intensité de la lueur
             f_frag_color.rgb += vec3(1.0, 0.8, 0.6) * glow;
         }
 
-        // Apply a slight random variation to each particle for a more natural effect
+        // Appliquer une légère variation aléatoire à chaque particule pour un effet plus naturel
         f_frag_color.rgb *= 1.0 + (fract(sin(dot(v_position_vs.xy, vec2(12.9898, 78.233))) * 43758.5453) * 0.1);
     } else {
-        // Standard Blinn-Phong shading pour non-particules
+        // Éclairage Blinn-Phong pour les objets non particules
         vec3 normal = normalize(v_normal_vs);
         vec4 frag_color;
 
@@ -106,7 +118,12 @@ void main() {
         vec3 lighting = blinn_phong_lighting(normal, v_position_vs);
         lighting = clamp(lighting, vec3(0.1), vec3(1.0)); // Limiter l'éclairage pour éviter la surexposition
 
-        // Combiner la couleur du fragment avec l'éclairage calculé, en préservant l'alpha
-        f_frag_color = vec4(frag_color.rgb * lighting, frag_color.a);
+        if(u_shininess < 0.1) {
+            f_frag_color = vec4(frag_color.rgb * 0.75, frag_color.a);
+        } else {
+            // Combiner la couleur du fragment avec l'éclairage calculé, en préservant l'alpha
+            f_frag_color = vec4(frag_color.rgb * lighting, frag_color.a);
+        }
+
     }
 }

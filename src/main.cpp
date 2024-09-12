@@ -140,6 +140,12 @@ int main() {
   arrow_x.set_scale(glm::vec3(5.f, 5.f, 5.f));
   arrow_x.set_rotation(glm::vec3(0., 0., -90.));
 
+  GameObject moon("assets/models/moon.obj", "assets/textures/moon.png");
+  moon.set_lighting_factors(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), 0.0);
+
+  GameObject night("assets/models/night.obj", "assets/textures/night.png");
+  night.set_lighting_factors(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), 0.0);
+
   GameObject ef_dushBoard("assets/models/ef_dushBoard.obj",
                           "assets/textures/ef_dushBoard.png");
   GameObject ef_hpipeBoard("assets/models/ef_hpipeBoard.obj",
@@ -215,7 +221,7 @@ int main() {
   glm::vec3 lightPosition(0.0f, 0.0f, 0.0f);
   float lightMotionRadius = 8.0f;
   float lightMotionSpeed = 0.5f;
-  lights[0].intensity = glm::vec3(10 * 0.82f, 10 * 0.86f, 10 * 1.0f);
+  lights[0].intensity = glm::vec3(0.82f, 0.86f, 1.0f);
   lights[1].intensity = glm::vec3(0.0f, 5.0f, 3.8f);
 
   lights[2].intensity = glm::vec3(1.92f, 1.77f, 1.29f);
@@ -235,9 +241,9 @@ int main() {
     next_event_time = time_events(next_event_time, ctx);
 
     ImGui::Begin("Position of the light");
-    ImGui::SliderFloat("X", &position_light_x, -100.0f, 0.f);
-    ImGui::SliderFloat("Y", &position_light_y, 0.0f, 100.f);
-    ImGui::SliderFloat("Z", &position_light_z, -200.f, -100.f);
+    ImGui::SliderFloat("X", &position_light_x, -1.f, 1.f);
+    ImGui::SliderFloat("Y", &position_light_y, -1.f, 1.f);
+    ImGui::SliderFloat("Z", &position_light_z, -1.f, 1.f);
     ImGui::End();
 
     glClearColor(0.f, 0.f, 0.f, 1.0f);
@@ -248,10 +254,9 @@ int main() {
     glm::mat4 view_matrix = camera.get_view_matrix();
 
     glm::mat4 proj_matrix =
-        glm::perspective(glm::radians(90.f), ctx.aspect_ratio(), 0.1f, 2000.f);
+        glm::perspective(glm::radians(90.f), ctx.aspect_ratio(), 0.1f, 10000.f);
 
-    lights[0].position =
-        glm::vec3(view_matrix * glm::vec4(-500, -500, -500, 1.0));
+    lights[0].position = glm::vec3(view_matrix * glm::vec4(-0.5, 1, 1, 0.0));
     lights[1].position =
         glm::vec3(view_matrix * glm::vec4(-38., 50., 33., 1.0));
 
@@ -305,6 +310,9 @@ int main() {
     // TR_sky.render_game_object(program,
     // view_matrix, proj_matrix);
 
+    night.render_game_object(program, view_matrix, proj_matrix);
+    moon.render_game_object(program, view_matrix, proj_matrix);
+
     ef_dushBoard.render_game_object(program, view_matrix, proj_matrix);
 
     // ef_hpipeBoard3.render_game_object(program,
@@ -322,14 +330,15 @@ int main() {
     TR_jimen.render_game_object(program, view_matrix, proj_matrix);
     TR_joint.render_game_object(program, view_matrix, proj_matrix);
     TR_kanbanALL.render_game_object(program, view_matrix, proj_matrix);
-    TR_senro_ura.render_game_object(program, view_matrix, proj_matrix);
-    TR_senro.render_game_object(program, view_matrix, proj_matrix);
 
     // TR_spot1.render_game_object(program,
     // view_matrix, proj_matrix);
     TR_teppan.render_game_object(program, view_matrix, proj_matrix);
     TR_tesuri.render_game_object(program, view_matrix, proj_matrix);
     TR_wood.render_game_object(program, view_matrix, proj_matrix);
+
+    TR_senro_ura.render_game_object(program, view_matrix, proj_matrix);
+    TR_senro.render_game_object(program, view_matrix, proj_matrix);
 
     // TR_SF_shadow.render_game_object(program, view_matrix, proj_matrix);
     // shadow.render_game_object(program, view_matrix, proj_matrix);
