@@ -61,7 +61,7 @@ public:
     m_angle_x = 0.0f;
     m_angle_y = 0.0f;
     m_distance = 100.0f;
-    m_center = glm::vec3(0.0f);
+    m_center = glm::vec3(-50.0f, 60.0f, -10.0f);
   }
 
   glm::mat4 get_view_matrix() const {

@@ -122,6 +122,7 @@ int main() {
   TrackballCamera camera;
   camera.set_move_speed(10.f);
   camera.set_rotate_speed(2.f);
+  camera.reset_camera();
   Program program{};
   Light lights[6];
 
