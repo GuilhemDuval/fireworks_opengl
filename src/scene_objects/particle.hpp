@@ -7,13 +7,13 @@ public:
   glm::vec3 location;
   glm::vec3 velocity;
   glm::vec3 acceleration;
-  float hu;       // Valeur de teinte pour la couleur
+  glm::vec3 m_color;
   float lifespan; // Durée de vie de la particule
   bool
       seed; // Indique si la particule est une "graine" (feu d'artifice initial)
 
-  Particle(float x, float y, float z, float hue);
-  Particle(glm::vec3 loc, float hue);
+  Particle(float x, float y, float z, glm::vec3 color);
+  Particle(glm::vec3 loc, glm::vec3 color);
 
   void apply_force(const glm::vec3 &force);
   void update();

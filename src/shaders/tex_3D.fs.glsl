@@ -11,6 +11,8 @@ uniform vec3 u_color;               // Uniform color for particles or solid obje
 uniform bool u_use_color;           // Flag to toggle between color and texture
 uniform bool u_is_particle;         // Flag to toggle between 3D model and particle
 uniform bool u_is_seed;
+uniform float u_lifespan;
+
 
 uniform vec3 u_kd;                  // Diffuse reflectivity
 uniform vec3 u_ks;                  // Specular reflectivity
@@ -81,22 +83,23 @@ void main() {
         float distance = length(gl_PointCoord - vec2(0.5));
 
         // Ajuster l'effet de halo en fonction de l'état du seed et de la distance
-        float halo_width = u_is_seed ? 0.3 : 0.2;  // Halo plus petit pour des particules plus diffuses
+        float halo_width = u_is_seed ? 0.4 : 0.2;  // Halo plus prononcé pour les particules seeds
         float alpha = smoothstep(adjusted_radius * 1.5, adjusted_radius - halo_width, distance);
 
         // Créer un effet de lueur avec un dégradé plus doux
-        float halo = smoothstep(adjusted_radius * 1.2, adjusted_radius - halo_width, distance) -
+        float halo = smoothstep(adjusted_radius * 1.2, adjusted_radius - halo_width, distance) - 
             smoothstep(adjusted_radius - halo_width, adjusted_radius - 2.0 * halo_width, distance);
 
-        // Réduire l'opacité au centre encore plus pour un noyau transparent subtil
-        vec3 particle_color = u_color * (1.0 - distance * 0.9) + vec3(1.0, 1.0, 1.0) * halo * 0.3;
+        // Ajuster la couleur en fonction du lifespan
+        float lifespan_factor = smoothstep(0.0, 255.0, u_lifespan); // De 0 à 1
+        vec3 particle_color = u_color * lifespan_factor * (1.0 - distance * 0.9) + vec3(1.0, 1.0, 1.0) * halo * 0.3;
 
         // Couleur finale avec une opacité beaucoup plus faible au centre pour des bords plus doux
-        f_frag_color = vec4(particle_color, alpha * (1.0 - distance * 0.8));  // Centre plus transparent
+        f_frag_color = vec4(particle_color, alpha * lifespan_factor * (1.0 - distance * 0.8));  // Centre plus transparent
 
         // Ajouter une lueur subtile et aléatoire pour les particules de seed
         if(u_is_seed) {
-            float glow = (1.0 - distance / adjusted_radius) * 0.1;  // Réduire l'intensité de la lueur
+            float glow = (1.0 - distance / adjusted_radius) * 0.2;  // Augmenter l'intensité de la lueur
             f_frag_color.rgb += vec3(1.0, 0.8, 0.6) * glow;
         }
 
@@ -116,10 +119,10 @@ void main() {
 
         // Calculer l'éclairage avec Blinn-Phong pour toutes les lumières
         vec3 lighting = blinn_phong_lighting(normal, v_position_vs);
-        lighting = clamp(lighting, vec3(0.1), vec3(1.0)); // Limiter l'éclairage pour éviter la surexposition
+        lighting = clamp(lighting, vec3(0.15), vec3(1.0)); // Limiter l'éclairage pour éviter la surexposition
 
         if(u_shininess < 0.1) {
-            f_frag_color = vec4(frag_color.rgb * 0.75, frag_color.a);
+            f_frag_color = vec4(frag_color.rgb * 0.8, frag_color.a);
         } else {
             // Combiner la couleur du fragment avec l'éclairage calculé, en préservant l'alpha
             f_frag_color = vec4(frag_color.rgb * lighting, frag_color.a);

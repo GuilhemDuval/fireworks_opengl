@@ -1,11 +1,13 @@
 #include "firework.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "../maths/color.hpp"
+#include <iostream>
 
 Firework::Firework()
-    : hue(glm::linearRand(0.f, 255.f)),
+    : m_color(generate_vivid_color()),
       firework(glm::linearRand(-100.f, 0.f), -50.f,
-               glm::linearRand(-150.f, 150.f), hue),
+               glm::linearRand(-150.f, 150.f), m_color),
       m_vao(std::make_unique<VAO>()), m_vbo(std::make_unique<VBO>()) {
 
   m_vao->bind();
@@ -33,8 +35,8 @@ void Firework::run(const glm::vec3 &gravity, const Program &program,
     firework.update();
     if (firework.explode()) {
       // Générer les particules après l'explosion
-      for (int i = 0; i < 750; ++i) {
-        particles.push_back(Particle(firework.location, hue));
+      for (int i = 0; i < 500; ++i) {
+        particles.push_back(Particle(firework.location, firework.m_color));
       }
     }
     glUniform1i(program.u_is_seed, 1);
@@ -71,12 +73,14 @@ void Firework::draw_particle(const Particle &particle, const Program &program,
   glUniformMatrix4fv(program.u_MV_matrix, 1, GL_FALSE,
                      glm::value_ptr(MV_matrix));
 
-  // Calcul et envoi de la couleur au shader
-  glm::vec3 color(particle.hu / 255.0f, 1.0f, particle.lifespan / 255.0f);
+  // Envoyer la couleur au shader
+  glm::vec3 color(particle.m_color.x, particle.m_color.y, particle.m_color.z);
+
   glUniform3fv(program.u_color, 1, glm::value_ptr(color));
 
   glUniform1i(program.u_use_color, 1);
   glUniform1i(program.u_is_particle, 1);
+  glUniform1f(program.u_lifespan, particle.lifespan);
 
   // Dessiner les particules (point unique)
   glDrawArrays(GL_POINTS, 0, 1);

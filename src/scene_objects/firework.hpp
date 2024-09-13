@@ -26,9 +26,9 @@ public:
            const glm::mat4 &view_matrix, const glm::mat4 &proj_matrix);
 
 private:
+  glm::vec3 m_color;
   std::vector<Particle> particles;
   Particle firework;
-  float hue;
   std::unique_ptr<VAO> m_vao;
   std::unique_ptr<VBO> m_vbo;
 

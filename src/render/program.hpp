@@ -17,6 +17,7 @@ public:
 
   GLint u_is_particle;
   GLint u_is_seed;
+  GLint u_lifespan;
 
   GLint u_kd;
   GLint u_ks;
@@ -47,6 +48,7 @@ public:
         u_use_color(glGetUniformLocation(m_program.id(), "u_use_color")),
         u_is_particle(glGetUniformLocation(m_program.id(), "u_is_particle")),
         u_is_seed(glGetUniformLocation(m_program.id(), "u_is_seed")),
+        u_lifespan(glGetUniformLocation(m_program.id(), "u_lifespan")),
         u_kd(glGetUniformLocation(m_program.id(), "u_kd")),
         u_ks(glGetUniformLocation(m_program.id(), "u_ks")),
         u_shininess(glGetUniformLocation(m_program.id(), "u_shininess")),

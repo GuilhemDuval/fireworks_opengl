@@ -21,11 +21,11 @@ struct Light {
 
 // Variables globales
 std::vector<Firework> fireworks;
-glm::vec3 gravity(0.f, -0.2f, 0.f);
+glm::vec3 gravity(0.f, -0.1f, 0.f);
 
 void update_fireworks(Program &program, const glm::mat4 &view_matrix,
                       const glm::mat4 &proj_matrix) {
-  if (glm::linearRand(0.f, 10.f) < 0.2f) {
+  if (glm::linearRand(0.f, 10.f) < 2.f) {
     fireworks.push_back(Firework());
   }
 
@@ -111,11 +111,13 @@ void APIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id,
 int main() {
 
   auto ctx = p6::Context{{1280, 720, "Projet d'honneur - Guilhem Duval"}};
+  
   ctx.maximize_window();
+  ctx.go_fullscreen();
   glEnable(GL_DEPTH_TEST);
 
   // Seed the random number generator
-  srand(time(NULL));
+  // srand(time(NULL));
 
   TrackballCamera camera;
   camera.set_move_speed(10.f);
@@ -123,7 +125,7 @@ int main() {
   Program program{};
   Light lights[6];
 
-  double next_event_time = 0.0;
+  // double next_event_time = 0.0;
 
   GameObject star_boid_low("assets/models/star_low.obj",
                            glm::vec3(1.0, 1.0, 1.0));
@@ -144,6 +146,8 @@ int main() {
 
   GameObject moon("assets/models/moon.obj", "assets/textures/moon.png");
   moon.set_lighting_factors(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), 0.0);
+  moon.set_rotation(glm::vec3(0.,10.,0.));
+  moon.set_position(glm::vec3(0.,+80.,0.));
 
   GameObject night("assets/models/night.obj", "assets/textures/night.png");
   night.set_lighting_factors(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), 0.0);
@@ -154,9 +158,7 @@ int main() {
                            "assets/textures/ef_hpipeBoard.png");
   GameObject ef_hpipeBoard2("assets/models/ef_hpipeBoard2.obj",
                             "assets/textures/ef_hpipeBoard2.png");
-  // GameObject
-  // ef_hpipeBoard3("assets/models/ef_hpipeBoard3.obj","assets/textures/ef_hpipeBoard3.png");
-  // GameObject shadow("assets/models/shadow.obj","assets/textures/shadow.png");
+
   GameObject TR_caveWall("assets/models/"
                          "TR_caveWall.obj",
                          "assets/textures/"
@@ -188,14 +190,8 @@ int main() {
                           "TR_senro_ura.png");
   GameObject TR_senro("assets/models/TR_senro.obj", "assets/textures/"
                                                     "TR_senro.png");
-  // GameObject TR_SF_shadow("assets/models/" "TR_SF_shadow.obj",
-  // "assets/textures/" "TR_SF_shadow.png"); GameObject
-  // TR_sky("assets/models/TR_sky.obj",
-  // "assets/textures/TR_sky.png");
-  // TR_sky.set_scale(glm::vec3(.9f,
-  // 0.9f, 0.9f));
-  GameObject TR_spot1("assets/models/TR_spot1.obj", "assets/textures/"
-                                                    "TR_spot1.png");
+
+
   GameObject TR_teppan("assets/models/TR_teppan.obj", "assets/textures/"
                                                       "TR_teppan.png");
   GameObject TR_tesuri("assets/models/TR_tesuri.obj", "assets/textures/"
@@ -205,13 +201,40 @@ int main() {
 
   GameObject space_object("assets/models/space.obj", "assets/textures/"
                                                      "space_texture.jpg");
-  space_object.set_scale(glm::vec3(1.5f, 1.5f, 1.5f));
-  space_object.set_lighting_factors({0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f},
-                                    75.0f);
 
-  GameObject star_boid("assets/models/star_low.obj", generate_vivid_color());
-  star_boid.set_scale(glm::vec3(0.1f, 0.1f, 0.1f));
-  star_boid.set_lighting_factors({1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, 0.0f);
+
+// Métal (brillant, avec un certain niveau de réflexion)
+ef_dushBoard.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.8f, 0.8f, 0.8f), 32.0f);
+ef_hpipeBoard.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.8f, 0.8f, 0.8f), 32.0f);
+ef_hpipeBoard2.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.8f, 0.8f, 0.8f), 32.0f);
+
+// Pierre (matériau rugueux, moins de réflexion)
+TR_caveWall.set_lighting_factors(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.2f, 0.2f, 0.2f), 8.0f);
+TR_iwa.set_lighting_factors(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.2f, 0.2f, 0.2f), 8.0f);
+TR_iwa2.set_lighting_factors(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.2f, 0.2f, 0.2f), 8.0f);
+TR_jimen.set_lighting_factors(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.2f, 0.2f, 0.2f), 8.0f);
+
+// Bois (réflexion modérée, plus doux que le métal)
+TR_wood.set_lighting_factors(glm::vec3(0.5f, 0.3f, 0.2f), glm::vec3(0.1f, 0.1f, 0.1f), 16.0f);
+TR_houseALL.set_lighting_factors(glm::vec3(0.5f, 0.3f, 0.2f), glm::vec3(0.1f, 0.1f, 0.1f), 16.0f);
+
+// Métal (rails, structures métalliques)
+TR_senro.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.9f, 0.9f, 0.9f), 32.0f);
+TR_senro_ura.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.9f, 0.9f, 0.9f), 32.0f);
+TR_teppan.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.9f, 0.9f, 0.9f), 32.0f);
+
+// Autres objets (structures diverses, ajuster selon leur nature)
+TR_hari.set_lighting_factors(glm::vec3(0.5f, 0.3f, 0.2f), glm::vec3(0.1f, 0.1f, 0.1f), 16.0f); // Bois/metal
+TR_hasira.set_lighting_factors(glm::vec3(0.5f, 0.3f, 0.2f), glm::vec3(0.1f, 0.1f, 0.1f), 16.0f); // Bois
+TR_chiso.set_lighting_factors(glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.2f, 0.2f, 0.2f), 8.0f); // Pierre
+
+// Panneaux (métal peint, brillance moyenne)
+TR_kanbanALL.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.7f, 0.7f, 0.7f), 16.0f);
+
+// Structures métalliques diverses
+TR_joint.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.9f, 0.9f, 0.9f), 32.0f);
+TR_tesuri.set_lighting_factors(glm::vec3(0.6f, 0.6f, 0.6f), glm::vec3(0.9f, 0.9f, 0.9f), 32.0f);
+
 
   float last_x = 0;
   float last_y = 0;
@@ -220,16 +243,13 @@ int main() {
   float position_light_y;
   float position_light_z;
 
-  glm::vec3 lightPosition(0.0f, 0.0f, 0.0f);
-  float lightMotionRadius = 8.0f;
-  float lightMotionSpeed = 0.5f;
-  lights[0].intensity = glm::vec3(0.82f, 0.86f, 1.0f);
-  lights[1].intensity = glm::vec3(0.0f, 5.0f, 3.8f);
+  lights[0].intensity = glm::vec3(1.1f*3, 1.0f*3, 0.7f*3);
+  lights[1].intensity = glm::vec3(0.0f, 5.0f/2, 3.8f/2);
 
-  lights[2].intensity = glm::vec3(1.92f, 1.77f, 1.29f);
-  lights[3].intensity = glm::vec3(1.92f, 1.77f, 1.29f);
-  lights[4].intensity = glm::vec3(1.92f, 1.77f, 1.29f);
-  lights[5].intensity = glm::vec3(2 * 1.92f, 2 * 1.77f, 2 * 1.29f);
+  lights[2].intensity = glm::vec3(1.92f*4, 1.77f*4, 1.29f*4);
+  lights[3].intensity = glm::vec3(1.92f*4, 1.77f*4, 1.29f*4);
+  lights[4].intensity = glm::vec3(1.92f*4, 1.77f*4, 1.29f*4);
+  lights[5].intensity = glm::vec3(6 * 1.92f, 6 * 1.77f, 6 * 1.29f);
 
   ctx.update = [&]() {
     glEnable(GL_DEBUG_OUTPUT);
@@ -240,13 +260,13 @@ int main() {
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    next_event_time = time_events(next_event_time, ctx);
+    // next_event_time = time_events(next_event_time, ctx);
 
-    ImGui::Begin("Position of the light");
-    ImGui::SliderFloat("X", &position_light_x, -200.f, 200.f);
-    ImGui::SliderFloat("Y", &position_light_y, -200.f, 200.f);
-    ImGui::SliderFloat("Z", &position_light_z, -200.f, 200.f);
-    ImGui::End();
+    // ImGui::Begin("Position of the light");
+    // ImGui::SliderFloat("X", &position_light_x, -200.f, 200.f);
+    // ImGui::SliderFloat("Y", &position_light_y, -200.f, 200.f);
+    // ImGui::SliderFloat("Z", &position_light_z, -200.f, 200.f);
+    // ImGui::End();
 
     glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -307,7 +327,7 @@ int main() {
                  glm::value_ptr(lights[5].intensity));
     glEnable(GL_CULL_FACE);
 
-    star_boid_low.render_game_object(program, view_matrix, proj_matrix);
+    // star_boid_low.render_game_object(program, view_matrix, proj_matrix);
 
     // TR_sky.render_game_object(program,
     // view_matrix, proj_matrix);
@@ -350,9 +370,9 @@ int main() {
     // view_matrix, proj_matrix);
 
     glCullFace(GL_BACK);
-    arrow_z.render_game_object(program, view_matrix, proj_matrix);
-    arrow_y.render_game_object(program, view_matrix, proj_matrix);
-    arrow_x.render_game_object(program, view_matrix, proj_matrix);
+    // arrow_z.render_game_object(program, view_matrix, proj_matrix);
+    // arrow_y.render_game_object(program, view_matrix, proj_matrix);
+    // arrow_x.render_game_object(program, view_matrix, proj_matrix);
 
     glDisable(GL_CULL_FACE);
     update_fireworks(program, view_matrix, proj_matrix);
