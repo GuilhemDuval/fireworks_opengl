@@ -14,6 +14,14 @@
 #include "render/program.hpp"
 #include "scene_objects/firework.hpp"
 
+// sudo apt update
+// sudo apt upgrade
+// sudo apt install --reinstall libgl1-mesa-dri libgl1-mesa-glx
+
+// export LIBGL_ALWAYS_SOFTWARE=1
+
+// glxgears
+
 struct Light {
   glm::vec3 position;  // Light position in view space
   glm::vec3 intensity; // Light intensity
